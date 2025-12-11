@@ -1,45 +1,90 @@
 # RAG-Powered Claims Query Assistant
 
-A complete local RAG system for querying insurance claims data using Natural Language.
+A professional, Dockerized RAG (Retrieval-Augmented Generation) system for querying insurance claims data using Natural Language. 
+It combines **Vector Search** (semantic understanding) with **Metadata Filtering** (structured queries) to answer complex questions like *"Show me denied claims for diabetes patients last quarter"*.
 
-## Features
-- **Data Generation**: Synthetic claims generator.
-- **RAG Pipeline**: Text normalization, embedding (SentenceTransformers), indexing (FAISS).
-- **LLM Integration**: Supports Local (GPT4All) and Cloud (OpenAI).
-- **UI**: Modern React Chat Interface with source citations.
-- **Infrastructure**: Dockerized.
+## 🚀 Features
 
-## Prerequisites
-- Python 3.10+
-- Docker & Docker Compose
-- Node.js (optional, for local frontend dev)
+*   **Hybrid Search**: Combines semantic vector search (FAISS) with LLM-extracted metadata filters (Date, Status, Claim ID).
+*   **Intelligent Query Parsing**: Uses LLMs to understand relative dates ("last quarter", "last year") and specific constraints.
+*   **Data Generation**: Built-in tool to generate thousands of synthetic realistic insurance claims.
+*   **Dockerized Architecture**: Fully isolated Frontend (React) and Backend (FastAPI) containers.
+*   **Multi-LLM Support**: Easy switching between OpenAI, Google Gemini, and Local Models (GPT4All/Mock).
+*   **Modern UI**: Responsive React interface with real-text streaming and source citations.
 
-## Quick Start (Demo)
-1. **Clone the repository**
-2. **Run the Demo Script** (Windows PowerShell):
-   ```powershell
-   .\run_demo.ps1
-   ```
-   This will:
-   - Generate 2000 mock claims.
-   - build and start containers.
-   - Run sample queries.
-   - Save results to `outputs/demo_results.json`.
+## 🛠️ Prerequisites
 
-3. **Open UI**: Go to [http://localhost:3000](http://localhost:3000)
+*   **Docker Desktop** (running)
+*   **Git**
+*   **API Key** (OpenAI or Google Gemini) - *Optional if using Local/Mock mode.*
 
-## Configuration
-Edit `backend/config.py` or simple set env vars in `docker-compose.yml`:
-- `LLM_TYPE`: `mock` (default), `gpt4all` (local), `openai`.
-- `OPENAI_API_KEY`: Required if usage `openai`.
+## 🏁 Quick Start
 
-## Architecture
-- **Frontend**: React + Vite (Port 3000)
-- **Backend**: FastAPI (Port 8000)
-- **Vector DB**: FAISS (Local file persistence)
-- **ETL**: Custom Python scripts.
+### 1. Clone the Repository
+```bash
+git clone https://github.com/princekumar828/claimAssistant.git
+cd claimAssistant
+```
 
-## Tradeoffs
-- **Vector DB**: Used FAISS IndexFlatL2 for simplicity. For production, use Milvus or Weaviate.
-- **LLM**: Defaulted to Mock/GPT4All for offline capability. 
-- **Chunking**: Simple splitting. Production should use semantic chunking.
+### 2. Configure Environment
+Create a `.env` file from the template:
+```bash
+cp .env.template .env
+```
+Open `.env` and add your API key:
+```ini
+LLM_TYPE=openai
+OPENAI_API_KEY=sk-proj-...
+# Or use LLM_TYPE=gemini / mock
+```
+
+### 3. Run the Application
+**Mac / Linux:**
+```bash
+./run_demo.sh
+```
+
+**Windows:**
+```powershell
+docker-compose up -d --build
+```
+*Note: The system will automatically generate synthetic data if `sample_data/claims.csv` is missing.*
+
+### 4. Access the UI
+Open your browser to **[http://localhost:3000](http://localhost:3000)**.
+
+---
+
+## 💡 Usage Guide
+
+### Ingesting Data
+The system automatically ingests data on startup. To ingest new data:
+1.  Place your CSV file at `sample_data/claims.csv` (Must match the [required schema](#csv-schema)).
+2.  Click **"Re-Ingest Data"** in the UI, or run:
+    ```bash
+    curl -X POST http://localhost:8000/ingest
+    ```
+
+### Example Queries
+Try asking these natural language questions:
+*   *"Show me denied claims"*
+*   *"Which claims were denied due to medical necessity?"*
+*   *"Show me claims from last quarter"* (Temporal filtering)
+*   *"Details for claim clm-0e74a86e"* (ID lookup)
+*   *"List all cardiology claims above $1000"*
+
+## 📊 CSV Schema
+If you use your own data, ensure your CSV has these headers:
+`claim_id`, `patient_id`, `doctor_name`, `specialty`, `diagnosis`, `procedure_code`, `claim_date` (YYYY-MM-DD), `amount`, `status`, `denial_reason`, `notes`.
+
+## 🏗️ Architecture
+*   **Frontend**: React, Vite, Tailwind CSS, Nginx.
+*   **Backend**: FastAPI, Python 3.10.
+*   **RAG Engine**: SentenceTransformers (`all-MiniLM-L6-v2`), FAISS (Vector DB).
+*   **LLM Handling**: OpenAI API / Google Gemini API / GPT4All (Local).
+
+## 🔧 Troubleshooting
+*   **"Index empty"**: Click "Re-Ingest Data" in the UI.
+*   **"Something went wrong"**: Check the browser console. If using OpenAI, ensure your API Key is valid and has credit.
+*   **Docker errors**: Ensure Docker Desktop is running. Run `docker-compose down` and try again.
+
